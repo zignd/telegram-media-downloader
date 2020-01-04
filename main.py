@@ -1,6 +1,7 @@
-import sys, os
+import sys, os, time
 from telethon.sync import TelegramClient
 from telethon.tl.functions.messages import GetAllChatsRequest
+from telethon import errors
 
 def initialize(api_id, api_hash):
     try:
@@ -17,18 +18,22 @@ def download_media(client, chat_title, skip_until=None):
         if chat.title == chat_title:
             print("found chat with title", chat_title)
             print('attemping to iterate over messages to download media')
-            for message in client.iter_messages(chat):
-                if skip_until and message.id > skip_until:
-                    print(message.id, message.date, "skipping")
-                    continue
+            skip_until = skip_until and int(skip_until)
+            for message in client.iter_messages(chat, offset_id=skip_until):
                 if message.media:
-                    print(message.id, message.date, "message has media, downloading")
-                    try:
-                        client.download_media(message, file='downloaded_media')
-                    except Exception as e:
-                        print(message.id, message.date, "failed to download media")
-                        raise e
-                    print(message.id, message.date, "media downloaded")
+                    while True:
+                        print(message.id, message.date, "message has media, downloading")
+                        try:
+                            client.download_media(message, file='downloaded_media')
+                        except errors.FloodWaitError as e:
+                            print(message.id, message.date, "failed to download media: flood wait error, were asked to wait for", e.seconds, " but will be waiting for", e.seconds + 120)
+                            time.sleep(e.seconds + 120)
+                            continue
+                        except Exception as e:
+                            print(message.id, message.date, "failed to download media")
+                            raise e
+                        print(message.id, message.date, "media downloaded")
+                        break
                 else:
                     print(message.id, message.date, "message doesn't have media")
             break

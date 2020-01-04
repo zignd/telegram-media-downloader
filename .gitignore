@@ -1,3 +1,4 @@
 downloaded_media
 env
 *.session
+*.session-journal
