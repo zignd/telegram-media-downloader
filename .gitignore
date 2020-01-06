@@ -2,3 +2,4 @@ downloaded_media
 env
 *.session
 *.session-journal
+last-message-id

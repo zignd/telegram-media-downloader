@@ -32,7 +32,10 @@ def download_media(client, chat_title, skip_until=None):
                         except Exception as e:
                             print(message.id, message.date, "failed to download media")
                             raise e
-                        print(message.id, message.date, "media downloaded")
+                        print(message.id, message.date, "media downloaded, waiting 10 seconds before the next one")
+                        with open('last-message-id', 'w') as f:
+                            f.write(str(message.id))
+                        time.sleep(10)
                         break
                 else:
                     print(message.id, message.date, "message doesn't have media")
